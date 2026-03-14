@@ -4,21 +4,11 @@
 
 * {
   -webkit-tap-highlight-color: transparent;
-  touch-action: pan-y;
 }
 
 html, body, #root {
   height: 100%;
   overflow: hidden;
-}
-
-.swipe-card {
-  transition: transform 0.15s ease, opacity 0.15s ease;
-  will-change: transform;
-}
-
-.swipe-card.swiping {
-  transition: none;
 }
 
 @keyframes bounce-in {
@@ -40,14 +30,18 @@ html, body, #root {
   animation: slide-up 0.25s ease forwards;
 }
 
+@keyframes pay-flash {
+  0% { transform: scale(1); }
+  40% { transform: scale(0.95); }
+  70% { transform: scale(1.03); }
+  100% { transform: scale(1); }
+}
+
+.pay-flash {
+  animation: pay-flash 0.35s ease forwards;
+}
+
 /* Custom scrollbar */
-::-webkit-scrollbar {
-  width: 4px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.2);
-  border-radius: 2px;
-}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(0,150,94,0.3); border-radius: 2px; }
