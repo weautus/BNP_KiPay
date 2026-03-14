@@ -1,0 +1,1 @@
+if('serviceWorker' in navigator) {window.addEventListener('load', () => {navigator.serviceWorker.register('/BNP_KiPay/sw.js', { scope: '/BNP_KiPay/' })})}
