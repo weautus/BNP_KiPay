@@ -36,7 +36,7 @@ const EMOJI_CATEGORIES = [
   }
 ]
 
-export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, onReset, PEOPLE }) {
+export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, onReorder, onReset, PEOPLE }) {
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🍽️')
@@ -161,13 +161,28 @@ export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, o
           </div>
         ) : (
           <div className="space-y-2">
-            {restaurants.map(r => (
+            {restaurants.map((r, i) => (
               <div key={r.id} className="bg-bnp-dark border border-bnp-deep rounded-xl px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">{r.emoji}</span>
-                  <div>
-                    <p className="text-white font-medium text-sm">{r.name}</p>
+                  {/* Up/Down order buttons */}
+                  <div className="flex flex-col gap-0.5">
+                    <button
+                      onClick={() => onReorder(r.id, 'up')}
+                      disabled={i === 0}
+                      className="text-white/30 hover:text-white/70 disabled:opacity-20 disabled:cursor-not-allowed text-xs leading-none px-1 py-0.5 rounded transition-colors"
+                    >
+                      ▲
+                    </button>
+                    <button
+                      onClick={() => onReorder(r.id, 'down')}
+                      disabled={i === restaurants.length - 1}
+                      className="text-white/30 hover:text-white/70 disabled:opacity-20 disabled:cursor-not-allowed text-xs leading-none px-1 py-0.5 rounded transition-colors"
+                    >
+                      ▼
+                    </button>
                   </div>
+                  <span className="text-2xl">{r.emoji}</span>
+                  <p className="text-white font-medium text-sm">{r.name}</p>
                 </div>
                 <div className="flex gap-1">
                   <button

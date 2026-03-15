@@ -91,6 +91,17 @@ export function useStorage() {
     })
   }
 
+  const reorderRestaurant = (id, direction) => {
+    setData(prev => {
+      const list = [...prev.restaurants]
+      const idx = list.findIndex(r => r.id === id)
+      const target = direction === 'up' ? idx - 1 : idx + 1
+      if (target < 0 || target >= list.length) return prev
+      ;[list[idx], list[target]] = [list[target], list[idx]]
+      return { ...prev, restaurants: list }
+    })
+  }
+
   const resetCounts = (id) => {
     setData(prev => ({
       ...prev,
@@ -122,6 +133,7 @@ export function useStorage() {
     addRestaurant,
     removeRestaurant,
     updateRestaurant,
+    reorderRestaurant,
     resetCounts,
     clearHistory,
     PEOPLE
