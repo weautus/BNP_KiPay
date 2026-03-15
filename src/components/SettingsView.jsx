@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { nextPayer } from '../hooks/useStorage'
 
 // 80 food/restaurant emojis grouped by category to avoid duplicates
 const EMOJI_CATEGORIES = [
@@ -168,7 +167,6 @@ export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, P
                   <span className="text-2xl">{r.emoji}</span>
                   <div>
                     <p className="text-white font-medium text-sm">{r.name}</p>
-                    <p className="text-bnp-light/70 text-xs">Prochain : {nextPayer(r.counts ?? { Kevin: 0, Emeric: 0 })}</p>
                   </div>
                 </div>
                 <div className="flex gap-1">
