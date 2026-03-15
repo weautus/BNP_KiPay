@@ -10,12 +10,6 @@ const TABS = [
   { id: 'settings', label: 'Gérer',       icon: '⚙️' }
 ]
 
-function getStats(history) {
-  const counts = {}
-  history.forEach(h => { counts[h.paidBy] = (counts[h.paidBy] || 0) + 1 })
-  return counts
-}
-
 export default function App() {
   const [tab, setTab] = useState('home')
   const [toast, setToast] = useState(null)
@@ -25,48 +19,29 @@ export default function App() {
     PEOPLE
   } = useStorage()
 
-  const handlePay = (id) => {
+  const handlePay = (id, person) => {
     const r = restaurants.find(r => r.id === id)
     if (!r) return
-    const paidBy = r.nextPayer
-    const next = PEOPLE.find(p => p !== paidBy)
-    recordPayment(id)
-    showToast(`${r.emoji} ${paidBy} a payé ! Au tour de ${next}`)
+    recordPayment(id, person)
+    showToast(`${r.emoji} ${person} a payé !`)
   }
 
   const showToast = (msg) => {
     setToast(msg)
-    setTimeout(() => setToast(null), 3000)
+    setTimeout(() => setToast(null), 2500)
   }
-
-  const stats = getStats(history)
 
   return (
     <div className="h-full bg-bnp-darker flex flex-col max-w-md mx-auto relative">
 
       {/* Header */}
       <header className="flex-shrink-0 bg-bnp-dark px-5 pt-10 pb-4 border-b border-bnp-deep">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <div className="w-1 h-7 bg-bnp-green rounded-full" />
           <div>
-            <div className="flex items-center gap-2">
-              {/* BNP-inspired green bar accent */}
-              <div className="w-1 h-7 bg-bnp-green rounded-full" />
-              <h1 className="text-white text-2xl font-extrabold tracking-tight">KiPay</h1>
-            </div>
-            <p className="text-white/40 text-xs mt-1 ml-3">C'est à qui de payer ?</p>
+            <h1 className="text-white text-2xl font-extrabold tracking-tight">KiPay</h1>
+            <p className="text-white/40 text-xs mt-0.5">C'est à qui de payer ?</p>
           </div>
-
-          {/* Score counter */}
-          {history.length > 0 && (
-            <div className="flex gap-4">
-              {PEOPLE.map(person => (
-                <div key={person} className="text-center">
-                  <p className="text-bnp-light font-extrabold text-xl leading-none">{stats[person] || 0}</p>
-                  <p className="text-white/40 text-xs mt-0.5">{person}</p>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
       </header>
 
@@ -126,7 +101,7 @@ export default function App() {
 
       {/* Toast */}
       {toast && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-bnp-green text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl bounce-in z-50 max-w-xs text-center whitespace-nowrap">
+        <div className="absolute top-24 left-1/2 -translate-x-1/2 bg-bnp-green text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl bounce-in z-50 whitespace-nowrap">
           {toast}
         </div>
       )}

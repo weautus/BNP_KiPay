@@ -1,47 +1,55 @@
 import { useState } from 'react'
-
-const COLORS = {
-  Kevin:  { bg: 'from-bnp-mid to-bnp-deep',   badge: 'bg-bnp-green',  text: 'text-bnp-light' },
-  Emeric: { bg: 'from-bnp-teal to-bnp-tealdark', badge: 'bg-bnp-teal', text: 'text-green-300' }
-}
+import { nextPayer } from '../hooks/useStorage'
 
 export default function RestaurantCard({ restaurant, onPay }) {
-  const { name, emoji, nextPayer } = restaurant
-  const colors = COLORS[nextPayer] || COLORS.Kevin
-  const [flashing, setFlashing] = useState(false)
+  const { name, emoji, counts } = restaurant
+  const next = nextPayer(counts)
+  const [flashing, setFlashing] = useState(null) // person name being flashed
 
-  const handlePay = () => {
-    setFlashing(true)
+  const handlePay = (person) => {
+    setFlashing(person)
     setTimeout(() => {
-      onPay(restaurant.id)
-      setFlashing(false)
-    }, 350)
+      onPay(restaurant.id, person)
+      setFlashing(null)
+    }, 300)
   }
 
   return (
-    <div
-      className={`bg-gradient-to-r ${colors.bg} rounded-2xl p-4 mb-3 ${flashing ? 'pay-flash' : ''}`}
-    >
-      <div className="flex items-center justify-between gap-3">
-        {/* Left: emoji + name */}
-        <div className="flex items-center gap-3 min-w-0">
-          <span className="text-4xl leading-none flex-shrink-0">{emoji}</span>
-          <div className="min-w-0">
-            <p className="text-white font-bold text-base leading-tight truncate">{name}</p>
-            <p className={`text-xs ${colors.text} mt-0.5`}>
-              Prochain : <span className="font-semibold text-white">{nextPayer}</span>
-            </p>
-          </div>
-        </div>
-
-        {/* Right: pay button */}
-        <button
-          onClick={handlePay}
-          className="flex-shrink-0 bg-white text-bnp-deep font-bold text-sm px-4 py-2 rounded-xl hover:bg-bnp-light hover:text-white active:scale-95 transition-all shadow-md"
-        >
-          ✓ Payé
-        </button>
+    <div className="bg-bnp-dark border border-bnp-deep rounded-2xl p-4 mb-3">
+      {/* Restaurant name + emoji */}
+      <div className="flex items-center gap-3 mb-3">
+        <span className="text-3xl leading-none">{emoji}</span>
+        <p className="text-white font-bold text-base">{name}</p>
       </div>
+
+      {/* Two pay buttons */}
+      <div className="flex gap-2">
+        {['Kevin', 'Emeric'].map(person => {
+          const isNext = person === next
+          const isFlashing = flashing === person
+          return (
+            <button
+              key={person}
+              onClick={() => handlePay(person)}
+              className={`flex-1 flex items-center justify-between px-4 py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-95 ${
+                isNext
+                  ? 'bg-bnp-green text-white shadow-md'
+                  : 'bg-bnp-darker border border-bnp-deep text-white/50 hover:text-white hover:border-bnp-mid'
+              } ${isFlashing ? 'pay-flash' : ''}`}
+            >
+              <span>{person}</span>
+              <span className={`text-xs font-bold px-1.5 py-0.5 rounded-md ${isNext ? 'bg-white/20' : 'bg-white/10'}`}>
+                {counts[person] ?? 0}
+              </span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* Next payer hint */}
+      <p className="text-white/30 text-xs mt-2 text-right">
+        Prochain : <span className="text-bnp-light font-semibold">{next}</span>
+      </p>
     </div>
   )
 }

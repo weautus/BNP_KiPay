@@ -2,19 +2,28 @@ import { useState, useEffect } from 'react'
 
 const STORAGE_KEY = 'kipay_data'
 
-const PEOPLE = ['Kevin', 'Emeric']
+export const PEOPLE = ['Kevin', 'Emeric']
 
 const DEFAULT_RESTAURANTS = [
-  { id: '1', name: 'Le Bistrot', emoji: '🍷', nextPayer: 'Kevin' },
-  { id: '2', name: 'La Pizzeria', emoji: '🍕', nextPayer: 'Emeric' },
-  { id: '3', name: 'Le Japonais', emoji: '🍣', nextPayer: 'Kevin' },
+  { id: '1', name: 'Le Bistrot',  emoji: '🍷', counts: { Kevin: 0, Emeric: 0 } },
+  { id: '2', name: 'La Pizzeria', emoji: '🍕', counts: { Kevin: 0, Emeric: 0 } },
+  { id: '3', name: 'Le Japonais', emoji: '🍣', counts: { Kevin: 0, Emeric: 0 } },
 ]
+
+// Migrate old format (nextPayer) to new format (counts)
+function migrate(restaurants) {
+  return restaurants.map(r => {
+    if (r.counts) return r
+    return { ...r, counts: { Kevin: 0, Emeric: 0 }, nextPayer: undefined }
+  })
+}
 
 function loadData() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return null
-    return JSON.parse(raw)
+    const data = JSON.parse(raw)
+    return { ...data, restaurants: migrate(data.restaurants) }
   } catch {
     return null
   }
@@ -24,40 +33,37 @@ function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
+// The next payer is whoever has the lowest count (Kevin wins ties)
+export function nextPayer(counts) {
+  return counts.Kevin <= counts.Emeric ? 'Kevin' : 'Emeric'
+}
+
 export function useStorage() {
   const [data, setData] = useState(() => {
-    const stored = loadData()
-    if (stored) return stored
-    return { restaurants: DEFAULT_RESTAURANTS, history: [] }
+    return loadData() ?? { restaurants: DEFAULT_RESTAURANTS, history: [] }
   })
 
-  useEffect(() => {
-    saveData(data)
-  }, [data])
+  useEffect(() => { saveData(data) }, [data])
 
-  const otherPerson = (person) => PEOPLE.find(p => p !== person)
-
-  // Record that nextPayer paid, update nextPayer to the other person
-  const recordPayment = (restaurantId) => {
+  const recordPayment = (restaurantId, person) => {
     setData(prev => {
       const restaurant = prev.restaurants.find(r => r.id === restaurantId)
       if (!restaurant) return prev
-
-      const paidBy = restaurant.nextPayer
-      const newNextPayer = otherPerson(paidBy)
 
       const historyEntry = {
         id: Date.now().toString(),
         restaurantId,
         restaurantName: restaurant.name,
         restaurantEmoji: restaurant.emoji,
-        paidBy,
+        paidBy: person,
         date: new Date().toISOString()
       }
 
       return {
         restaurants: prev.restaurants.map(r =>
-          r.id === restaurantId ? { ...r, nextPayer: newNextPayer } : r
+          r.id === restaurantId
+            ? { ...r, counts: { ...r.counts, [person]: (r.counts[person] || 0) + 1 } }
+            : r
         ),
         history: [historyEntry, ...prev.history]
       }
@@ -65,31 +71,25 @@ export function useStorage() {
   }
 
   const addRestaurant = (name, emoji) => {
-    const newRestaurant = {
-      id: Date.now().toString(),
-      name: name.trim(),
-      emoji,
-      nextPayer: 'Kevin'
-    }
     setData(prev => ({
       ...prev,
-      restaurants: [...prev.restaurants, newRestaurant]
+      restaurants: [...prev.restaurants, {
+        id: Date.now().toString(),
+        name: name.trim(),
+        emoji,
+        counts: { Kevin: 0, Emeric: 0 }
+      }]
     }))
   }
 
   const removeRestaurant = (id) => {
-    setData(prev => ({
-      ...prev,
-      restaurants: prev.restaurants.filter(r => r.id !== id)
-    }))
+    setData(prev => ({ ...prev, restaurants: prev.restaurants.filter(r => r.id !== id) }))
   }
 
   const updateRestaurant = (id, changes) => {
     setData(prev => ({
       ...prev,
-      restaurants: prev.restaurants.map(r =>
-        r.id === id ? { ...r, ...changes } : r
-      )
+      restaurants: prev.restaurants.map(r => r.id === id ? { ...r, ...changes } : r)
     }))
   }
 

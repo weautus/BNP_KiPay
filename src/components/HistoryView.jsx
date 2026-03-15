@@ -3,7 +3,16 @@ const PERSON_COLORS = {
   Emeric: 'bg-bnp-teal/30 text-green-300 border border-bnp-teal/50'
 }
 
+function isToday(iso) {
+  const d = new Date(iso)
+  const today = new Date()
+  return d.getDate() === today.getDate() &&
+    d.getMonth() === today.getMonth() &&
+    d.getFullYear() === today.getFullYear()
+}
+
 function formatDate(iso) {
+  if (isToday(iso)) return "Aujourd'hui"
   const d = new Date(iso)
   return d.toLocaleDateString('fr-FR', {
     weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
@@ -16,22 +25,26 @@ export default function HistoryView({ history, onClear }) {
       <div className="flex flex-col items-center justify-center h-full text-white/30 gap-3 pb-20">
         <span className="text-5xl">📭</span>
         <p className="text-white/50 text-lg font-semibold">Aucun historique</p>
-        <p className="text-sm">Appuyez sur "Payé" pour commencer</p>
+        <p className="text-sm">Appuyez sur un nom pour commencer</p>
       </div>
     )
   }
 
+  const today = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  })
+
   const groups = {}
   history.forEach(entry => {
-    const date = formatDate(entry.date)
-    if (!groups[date]) groups[date] = []
-    groups[date].push(entry)
+    const label = formatDate(entry.date)
+    if (!groups[label]) groups[label] = []
+    groups[label].push(entry)
   })
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex items-center justify-between mb-4 flex-shrink-0">
-        <h2 className="text-white font-bold text-base">Historique des paiements</h2>
+      <div className="flex items-center justify-between mb-1 flex-shrink-0">
+        <h2 className="text-white font-bold text-base">Historique</h2>
         <button
           onClick={onClear}
           className="text-red-400 text-xs hover:text-red-300 transition-colors px-2 py-1 rounded-lg hover:bg-red-500/10"
@@ -39,16 +52,19 @@ export default function HistoryView({ history, onClear }) {
           Effacer
         </button>
       </div>
+      <p className="text-bnp-green/60 text-xs mb-4 capitalize">{today}</p>
 
       <div className="overflow-y-auto flex-1 -mr-2 pr-2">
-        {Object.entries(groups).map(([date, entries]) => (
-          <div key={date} className="mb-5 slide-up">
-            <p className="text-bnp-green text-xs font-semibold uppercase tracking-wider mb-2">{date}</p>
+        {Object.entries(groups).map(([label, entries]) => (
+          <div key={label} className="mb-5 slide-up">
+            <p className={`text-xs font-semibold uppercase tracking-wider mb-2 ${
+              label === "Aujourd'hui" ? 'text-bnp-green' : 'text-white/30'
+            }`}>{label}</p>
             <div className="space-y-2">
               {entries.map(entry => (
                 <div
                   key={entry.id}
-                  className="flex items-center justify-between bg-bnp-dark rounded-xl px-4 py-3 border border-bnp-deep"
+                  className="flex items-center justify-between bg-bnp-dark border border-bnp-deep rounded-xl px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{entry.restaurantEmoji}</span>
