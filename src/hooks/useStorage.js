@@ -5,16 +5,19 @@ const STORAGE_KEY = 'kipay_data'
 export const PEOPLE = ['Kevin', 'Emeric']
 
 const DEFAULT_RESTAURANTS = [
-  { id: '1', name: 'Le Bistrot',  emoji: '🍷', counts: { Kevin: 0, Emeric: 0 } },
-  { id: '2', name: 'La Pizzeria', emoji: '🍕', counts: { Kevin: 0, Emeric: 0 } },
-  { id: '3', name: 'Le Japonais', emoji: '🍣', counts: { Kevin: 0, Emeric: 0 } },
+  { id: '1', name: 'Le Bistrot',  emoji: '🍷', counts: { Kevin: 0, Emeric: 0 }, startWith: 'Kevin' },
+  { id: '2', name: 'La Pizzeria', emoji: '🍕', counts: { Kevin: 0, Emeric: 0 }, startWith: 'Emeric' },
+  { id: '3', name: 'Le Japonais', emoji: '🍣', counts: { Kevin: 0, Emeric: 0 }, startWith: 'Kevin' },
 ]
 
 // Migrate old format (nextPayer) to new format (counts)
 function migrate(restaurants) {
-  return restaurants.map(r => {
-    if (r.counts) return r
-    return { ...r, counts: { Kevin: 0, Emeric: 0 }, nextPayer: undefined }
+  return restaurants.map((r, i) => {
+    const withCounts = r.counts ? r : { ...r, counts: { Kevin: 0, Emeric: 0 }, nextPayer: undefined }
+    if (!withCounts.startWith) {
+      withCounts.startWith = i % 2 === 0 ? 'Kevin' : 'Emeric'
+    }
+    return withCounts
   })
 }
 
@@ -33,9 +36,10 @@ function saveData(data) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
-// The next payer is whoever has the lowest count (Kevin wins ties)
-export function nextPayer(counts) {
-  return counts.Kevin <= counts.Emeric ? 'Kevin' : 'Emeric'
+// The next payer is whoever has the lowest count; startWith breaks ties
+export function nextPayer(counts, startWith = 'Kevin') {
+  if (counts.Kevin === counts.Emeric) return startWith
+  return counts.Kevin < counts.Emeric ? 'Kevin' : 'Emeric'
 }
 
 export function useStorage() {
@@ -71,14 +75,28 @@ export function useStorage() {
   }
 
   const addRestaurant = (name, emoji) => {
+    setData(prev => {
+      const last = prev.restaurants[prev.restaurants.length - 1]
+      const startWith = last?.startWith === 'Kevin' ? 'Emeric' : 'Kevin'
+      return {
+        ...prev,
+        restaurants: [...prev.restaurants, {
+          id: Date.now().toString(),
+          name: name.trim(),
+          emoji,
+          counts: { Kevin: 0, Emeric: 0 },
+          startWith
+        }]
+      }
+    })
+  }
+
+  const resetCounts = (id) => {
     setData(prev => ({
       ...prev,
-      restaurants: [...prev.restaurants, {
-        id: Date.now().toString(),
-        name: name.trim(),
-        emoji,
-        counts: { Kevin: 0, Emeric: 0 }
-      }]
+      restaurants: prev.restaurants.map(r =>
+        r.id === id ? { ...r, counts: { Kevin: 0, Emeric: 0 } } : r
+      )
     }))
   }
 
@@ -104,6 +122,7 @@ export function useStorage() {
     addRestaurant,
     removeRestaurant,
     updateRestaurant,
+    resetCounts,
     clearHistory,
     PEOPLE
   }

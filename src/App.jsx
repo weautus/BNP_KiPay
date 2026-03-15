@@ -15,7 +15,7 @@ export default function App() {
   const [toast, setToast] = useState(null)
   const {
     restaurants, history,
-    recordPayment, addRestaurant, removeRestaurant, updateRestaurant, clearHistory,
+    recordPayment, addRestaurant, removeRestaurant, updateRestaurant, resetCounts, clearHistory,
     PEOPLE
   } = useStorage()
 
@@ -75,6 +75,7 @@ export default function App() {
             onAdd={addRestaurant}
             onRemove={removeRestaurant}
             onUpdate={updateRestaurant}
+            onReset={resetCounts}
             PEOPLE={PEOPLE}
           />
         )}

@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { nextPayer } from '../hooks/useStorage'
 
 export default function RestaurantCard({ restaurant, onPay }) {
-  const { name, emoji, counts } = restaurant
-  const next = nextPayer(counts)
+  const { name, emoji, counts, startWith } = restaurant
+  const next = nextPayer(counts, startWith)
   const [flashing, setFlashing] = useState(null) // person name being flashed
 
   const handlePay = (person) => {

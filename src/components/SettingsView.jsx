@@ -36,7 +36,7 @@ const EMOJI_CATEGORIES = [
   }
 ]
 
-export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, PEOPLE }) {
+export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, onReset, PEOPLE }) {
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🍽️')
@@ -175,6 +175,13 @@ export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, P
                     className="text-white/40 hover:text-white/80 text-xs px-2 py-1 rounded-lg hover:bg-white/10 transition-colors"
                   >
                     ✏️
+                  </button>
+                  <button
+                    onClick={() => { if (window.confirm(`Remettre les compteurs de "${r.name}" à zéro ?`)) onReset(r.id) }}
+                    className="text-yellow-400/60 hover:text-yellow-400 text-xs px-2 py-1 rounded-lg hover:bg-yellow-500/10 transition-colors"
+                    title="Remettre à zéro"
+                  >
+                    🔄
                   </button>
                   <button
                     onClick={() => onRemove(r.id)}
