@@ -36,11 +36,12 @@ const EMOJI_CATEGORIES = [
   }
 ]
 
-export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, onReorder, onReset, PEOPLE }) {
+export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, onReorder, onReset, PEOPLE, syncStatus, syncError, syncConnected, onConnect, onDisconnect, onPull }) {
   const [showForm, setShowForm] = useState(false)
   const [name, setName] = useState('')
   const [emoji, setEmoji] = useState('🍽️')
   const [editId, setEditId] = useState(null)
+  const [tokenInput, setTokenInput] = useState('')
 
   // Track already-used emojis to highlight duplicates
   const usedEmojis = new Set(restaurants.map(r => r.emoji))
@@ -207,6 +208,66 @@ export default function SettingsView({ restaurants, onAdd, onRemove, onUpdate, o
                 </div>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      {/* Sync section */}
+      <div className="flex-shrink-0 mt-4 border-t border-bnp-deep pt-4">
+        <p className="text-white/50 text-xs font-semibold uppercase tracking-wider mb-3">Synchronisation</p>
+
+        {syncConnected ? (
+          <div className="bg-bnp-dark border border-bnp-deep rounded-xl px-4 py-3 space-y-2">
+            {/* Status */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {syncStatus === 'syncing' && <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />}
+                {syncStatus === 'synced'  && <span className="w-2 h-2 rounded-full bg-bnp-green" />}
+                {syncStatus === 'error'   && <span className="w-2 h-2 rounded-full bg-red-400" />}
+                <span className="text-white text-xs font-medium">
+                  {syncStatus === 'syncing' ? 'Synchronisation…' : syncStatus === 'synced' ? 'Synchronisé' : 'Erreur'}
+                </span>
+              </div>
+              <div className="flex gap-1">
+                <button
+                  onClick={onPull}
+                  className="text-white/40 hover:text-white/80 text-xs px-2 py-1 rounded-lg hover:bg-white/10 transition-colors"
+                  title="Rafraîchir depuis le Gist"
+                >
+                  ↓ Rafraîchir
+                </button>
+                <button
+                  onClick={onDisconnect}
+                  className="text-red-400/60 hover:text-red-400 text-xs px-2 py-1 rounded-lg hover:bg-red-500/10 transition-colors"
+                >
+                  Déconnecter
+                </button>
+              </div>
+            </div>
+            {syncStatus === 'error' && syncError && (
+              <p className="text-red-400 text-xs">{syncError}</p>
+            )}
+          </div>
+        ) : (
+          <div className="bg-bnp-dark border border-bnp-deep rounded-xl px-4 py-3 space-y-3">
+            <p className="text-white/40 text-xs">Entrez un token GitHub (scope <code className="bg-white/10 px-1 rounded">gist</code>) pour partager les données entre appareils.</p>
+            <input
+              type="password"
+              value={tokenInput}
+              onChange={e => setTokenInput(e.target.value)}
+              placeholder="ghp_…"
+              className="w-full bg-bnp-darker text-white placeholder-white/30 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-bnp-green border border-bnp-deep"
+            />
+            {syncStatus === 'error' && syncError && (
+              <p className="text-red-400 text-xs">{syncError}</p>
+            )}
+            <button
+              onClick={() => { if (tokenInput.trim()) { onConnect(tokenInput.trim()); setTokenInput('') } }}
+              disabled={!tokenInput.trim() || syncStatus === 'syncing'}
+              className="w-full bg-bnp-green hover:bg-bnp-light disabled:bg-white/10 disabled:text-white/30 text-white rounded-xl py-2 text-sm font-semibold transition-colors"
+            >
+              {syncStatus === 'syncing' ? 'Connexion…' : 'Connecter'}
+            </button>
           </div>
         )}
       </div>

@@ -16,7 +16,8 @@ export default function App() {
   const {
     restaurants, history,
     recordPayment, addRestaurant, removeRestaurant, updateRestaurant, reorderRestaurant, resetCounts, clearHistory,
-    PEOPLE
+    PEOPLE,
+    syncStatus, syncError, syncConnected, connectGist, disconnectGist, pullGist,
   } = useStorage()
 
   const handlePay = (id, person) => {
@@ -36,12 +37,24 @@ export default function App() {
 
       {/* Header */}
       <header className="flex-shrink-0 bg-bnp-dark px-5 pt-10 pb-4 border-b border-bnp-deep">
-        <div className="flex items-center gap-2">
-          <div className="w-1 h-7 bg-bnp-green rounded-full" />
-          <div>
-            <h1 className="text-white text-2xl font-extrabold tracking-tight">KiPay</h1>
-            <p className="text-white/40 text-xs mt-0.5">C'est à qui de payer ?</p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-1 h-7 bg-bnp-green rounded-full" />
+            <div>
+              <h1 className="text-white text-2xl font-extrabold tracking-tight">KiPay</h1>
+              <p className="text-white/40 text-xs mt-0.5">C'est à qui de payer ?</p>
+            </div>
           </div>
+          {syncConnected && (
+            <div className="flex items-center gap-1.5" title={syncError || ''}>
+              {syncStatus === 'syncing' && <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />}
+              {syncStatus === 'synced'  && <span className="w-2 h-2 rounded-full bg-bnp-green" />}
+              {syncStatus === 'error'   && <span className="w-2 h-2 rounded-full bg-red-400" />}
+              <span className="text-white/30 text-xs">
+                {syncStatus === 'syncing' ? 'Sync…' : syncStatus === 'synced' ? 'Sync' : 'Erreur'}
+              </span>
+            </div>
+          )}
         </div>
       </header>
 
@@ -78,6 +91,12 @@ export default function App() {
             onReorder={reorderRestaurant}
             onReset={resetCounts}
             PEOPLE={PEOPLE}
+            syncStatus={syncStatus}
+            syncError={syncError}
+            syncConnected={syncConnected}
+            onConnect={connectGist}
+            onDisconnect={disconnectGist}
+            onPull={pullGist}
           />
         )}
       </main>
